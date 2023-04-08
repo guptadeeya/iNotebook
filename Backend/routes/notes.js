@@ -46,37 +46,74 @@ router.post('/addnotes', fetchuser, [
     }
 })
 
-// ROUTE 3: Update an existing note using: POST "/api/notes/updatenote"  Login required
+// ROUTE 3: Update an existing note using: PUT "/api/notes/updatenote"  Login required
 router.put('/updatenote/:id', fetchuser, async (req, res) => {
     // Destructuring
-    const {title, description,tag} = req.body;
+    const { title, description, tag } = req.body;
 
-    // Create a newNote object
-    const newNote = {};
+    try {
+        // Create a newNote object
+        const newNote = {};
 
-    if(title){
-        newNote.title = title;
-    }
-    if(description){
-        newNote.description = description;
-    }
-    if(tag){
-        newNote.tag = tag;
-    }
+        if (title) {
+            newNote.title = title;
+        }
+        if (description) {
+            newNote.description = description;
+        }
+        if (tag) {
+            newNote.tag = tag;
+        }
 
-    // Find a note to be updated and update it
-    let note = await Note.findById(req.params.id);
-    // Agr uss id se notes nahi access hore, mtlb koi glt id ya hack krne ka try krra h
-    if(!note){
-        return res.status(401).send("Not found");
-    }
+        // Find a note to be updated and update it
+        let note = await Note.findById(req.params.id);
+        // Agr uss id se notes nahi access hore, mtlb koi glt id ya hack krne ka try krra h
+        if (!note) {
+            return res.status(401).send("Not found");
+        }
 
-    // To check that the user logged in is updating his notes only, not someone else'
-    if(note.user.toString() !== req.user.id){
-        return res.status(404).send("Not allowed")
-    }
+        // To check that the user logged in is updating his notes only, not someone else'
+        if (note.user.toString() !== req.user.id) {
+            return res.status(404).send("Not allowed")
+        }
 
-    note = await Note.findByIdAndUpdate(req.params.id, {$set: newNote}, {new: true});
-    res.json({note}); 
+        note = await Note.findByIdAndUpdate(req.params.id, { $set: newNote }, { new: true });
+        res.json({ note });
+
+    }
+    catch (error) {
+        console.error(error.message);
+        res.status(500).send("Internal server error");
+    }
 })
+
+// ROUTE 4: Delete an existing note using: DELETE "/api/notes/deletenote"  Login required
+router.delete('/deletenote/:id', fetchuser, async (req, res) => {
+    // no need of destructuring in deleting
+    // const { title, description, tag } = req.body;
+
+    // No need to make newnote object in deleting any note like we did in code for updating it 
+
+    try {
+        // Find a note to be deleted and delete it
+        let note = await Note.findById(req.params.id);
+        if (!note) {
+            return res.status(401).send("Not found");
+        }
+
+        // To check that the user logged in is updating his notes only, not someone else'
+        // allows deletion only if the user owns the note
+        if (note.user.toString() !== req.user.id) {
+            return res.status(404).send("Not allowed")
+        }
+
+        note = await Note.findByIdAndDelete(req.params.id);
+        res.json({ "Success": "Note has been deleted", note: note });
+    }
+    catch (error) {
+        console.error(error.message);
+        res.status(500).send("Internal server error");
+    }
+})
+
 module.exports = router
