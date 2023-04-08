@@ -1,6 +1,12 @@
 const mongoose = require('mongoose');
+const { Schema } = mongoose;
 
 const NotesSchema = new Schema({
+    // this user is required to check the notes belongs to which user
+    user:{
+      type: mongoose.Schema.Types.ObjectId,
+      ref:'user'
+    },  
     title:{
        type: String,
        required: true
