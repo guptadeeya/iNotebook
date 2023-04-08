@@ -59,7 +59,7 @@ body('password').isLength({ min: 5 })
     // console.log(jwtData);
 
     // res.json(user);
-    req.json({authToken});
+    res.json({authToken});
   }
   // Catch errors
   catch (error) {
